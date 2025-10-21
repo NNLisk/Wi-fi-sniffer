@@ -7,13 +7,12 @@
 + Uses freeRTOS to schedule tasks
 
 # Plan
-+ to implement a system where ESP32 boards in different physical locations transmit relevant packet information to an MQTT broker running on a central Raspberry pi, which handles packet logic and 
-visualizes the information
++ to implement a system where ESP32 boards in different physical locations transmit relevant packet information to the e.g. central raspberry pi listening to a TCPsocket.
 
 + options for visualization
     + [----------------] intensity meters
-      Display an incoming datapacket based on its intensity (dbm) as a flashing of one of the dashes
-    + more complicated, visual mapping of physical locations of devices
+      Display an incoming datapacket based on its intensity (dbm) as a flashing of one of the dashes, real time is problematic with a bulk json only every 30 seconds
+    + visual mapping of physical locations of devices, updates every 30 seconds. more complicated, requires triangulation to compute the physical location. Also difficult with randomized MACs
 
 # Problems
 + ESP32 cannot at the same time listen in promiscuous mode and 
