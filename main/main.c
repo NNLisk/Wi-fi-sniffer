@@ -7,16 +7,22 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 
-#include "mqtt_client.h"
+#include "lwip/sockets.h"
+#include "lwip/inet.h"
+#include "lwip/netdb.h"
+
 
 // -- conf / globals ---------------------------------
 
 static const char *SNF = "SNIFF MODE";
 static const char *TRNSMT = "TRANSMIT MODE";
 static const char *MAIN = "INIT";
-static const char *SERVERIP= "SERVERIP";
-static const char *PORT= "PORT";
 
+#define HOSTSSID "sniffnet"
+#define HOSTPW "sniff1234"
+
+#define SERVERIP "SERVERIP"
+#define PORT 50000
 
 static int current_channel = 1;
 static TaskHandle_t channel_hop_handle = NULL;
@@ -69,7 +75,7 @@ static void transmit_mode(void);
 static void wifi_sniffer_cb(void *buf, wifi_promiscuous_pkt_type_t type) {    
     const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buf;
     if (!ppkt) return;
-    if (log_index < MAX_LOG_ENTRIES) return;
+    if (log_index >= MAX_LOG_ENTRIES) return;
 
     const uint8_t *raw = ppkt-> payload;
     if (!raw) return;
@@ -140,7 +146,7 @@ static void sniff_mode(void) {
     esp_wifi_set_promiscuous_filter(&filter);
     esp_wifi_set_promiscuous(true);
 
-    xTaskCreatePinnedToCore(channel_hop_task, "ch_hop", 4096, NULL, 5, NULL, 1);
+    xTaskCreate(channel_hop_task, "ch_hop", 4096, NULL, 5, &channel_hop_handle);
 
     vTaskDelay(pdMS_TO_TICKS(30000));
 
@@ -155,22 +161,53 @@ static void sniff_mode(void) {
 // To do, connect to a server and transmit the json
 static void transmit_mode(void) {
     ESP_LOGI(TRNSMT, "TRANSMIT MODE for 10s");
+    const char *json = logToJson();
     
     esp_wifi_stop();
     esp_wifi_set_mode(WIFI_MODE_STA);
 
-    ESP_LOGI(TRNSMT, "Would send %d packets now", log_index);
 
+    wifi_config_t wifi_config = {
+    .sta = {
+        .ssid = HOSTSSID,
+        .password = HOSTPW,
+        }
+    };
+    esp_wifi_set_mode(WIFI_MODE_STA);
+    esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     esp_wifi_start();
+    esp_wifi_connect();
+
     vTaskDelay(pdMS_TO_TICKS(5000));
-    const char *json = logToJson();
+
+    int sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_IP);
+    if (sock < 0) {
+        ESP_LOGE(TRNSMT, "Unable to create socket: errno %d", errno);
+        return;
+    }
+
+    //ipv4 address
+    struct sockaddr_in dest_addr;
+    dest_addr.sin_addr.s_addr = inet_addr(SERVERIP);
+    dest_addr.sin_family = AF_INET;
+    dest_addr.sin_port = htons(PORT);
+
+
+    int err = sendto(sock, json, strlen(json), 0, (struct sockaddr *)&dest_addr, sizeof(dest_addr));
+    if (err < 0) {
+        ESP_LOGE(TRNSMT, "Error occurred during sending: errno %d", errno);
+    } else {
+        ESP_LOGI(TRNSMT, "Sent %d bytes", err);
+    }
     log_index = 0;
 }
 
 static void modeSwitcher(void *arg) {
     while (1) {
         sniff_mode();
+        vTaskDelay(pdMS_TO_TICKS(30000));
         transmit_mode();
+        vTaskDelay(pdMS_TO_TICKS(10000));
     }
 }
 
@@ -194,7 +231,7 @@ void app_main(void)
 
     
     //starts loop
-    xTaskCreate(modeSwitcher, "modeSwitcher", 12*1024, NULL, 5, NULL);
+    xTaskCreatePinnedToCore(modeSwitcher, "modeSwitcher", 12*1024, NULL, 5, NULL, 1);
 }
 
 // -----------------------------------------------
