@@ -25,11 +25,11 @@ visualizes the information
   + prone to errors with dense areas
 
 ## Folder structure
-´´´
+```
 ├── CMakeLists.txt
 ├── main
 │   ├── CMakeLists.txt
 │   └── main.c
 └── README.md     
-´´´           
+```     
 
