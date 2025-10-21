@@ -7,7 +7,21 @@
 #include "esp_event.h"
 #include "nvs_flash.h"
 
-// -- Definitions ---------------------------
+#include "mqtt_client.h"
+
+// -- conf / globals ---------------------------------
+
+static const char *SNF = "SNIFF MODE";
+static const char *TRNSMT = "TRANSMIT MODE";
+static const char *MAIN = "INIT";
+static const char *SERVERIP= "SERVERIP";
+static const char *PORT= "PORT";
+
+
+static int current_channel = 1;
+static TaskHandle_t channel_hop_handle = NULL;
+
+// -- Structs ---------------------------
 
 typedef struct {
     // first 2 bytes of the frame
@@ -34,25 +48,39 @@ typedef struct {
     uint8_t payload[]; // variable-length frame body
 } wifi_ieee80211_packet_t;
 
-// --------------------------------------------
+typedef struct {
+    uint32_t timestamp;
+    int8_t rssi;
+    uint8_t mac[6];
+    uint8_t channel;
+} packet_log_t;
 
-// tag for the log
-static const char *TAG = "sniffer";
+#define MAX_LOG_ENTRIES 500
+packet_log_t packet_log[MAX_LOG_ENTRIES];
+int log_index = 0;
 
-static void wifi_sniffer_cb(void *buf, wifi_promiscuous_pkt_type_t type) {
-    ESP_LOGI(TAG, "callback");
-    
+// -- forward decls -------------
+static const char *logToJson(void);
+static void sniff_mode(void);
+static void transmit_mode(void);
+
+// -- Sniffer callback -----------------------------
+
+static void wifi_sniffer_cb(void *buf, wifi_promiscuous_pkt_type_t type) {    
     const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buf;
-    const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)ppkt->payload;
-    const uint8_t *frame = ipkt->payload;
-    char mac[18];
-    sprintf(mac, "%02X:%02X:%02X:%02X:%02X:%02X",
-            ipkt->hdr.addr2[0], ipkt->hdr.addr2[1],
-            ipkt->hdr.addr2[2], ipkt->hdr.addr2[3],
-            ipkt->hdr.addr2[4], ipkt->hdr.addr2[5]);
+    if (!ppkt) return;
+    if (log_index < MAX_LOG_ENTRIES) return;
 
-    uint16_t len = ppkt->rx_ctrl.sig_len;
-    ESP_LOGI(TAG, "Pkt type=%d len=%d, srcmac=%s rssi=%d", type, len, mac, ppkt->rx_ctrl.rssi);
+    const uint8_t *raw = ppkt-> payload;
+    if (!raw) return;
+
+    const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)raw;
+    
+    packet_log[log_index].timestamp = esp_log_timestamp();
+    packet_log[log_index].rssi = ppkt->rx_ctrl.rssi;
+    memcpy(packet_log[log_index].mac, ipkt->hdr.addr2, 6);
+    packet_log[log_index].channel = current_channel;
+    log_index++;
 }
 
 // changes channel every 2000 ms
@@ -60,13 +88,93 @@ static void channel_hop_task(void *arg) {
     int channel = 1;
     
     while (1) {
-        esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
-        ESP_LOGI(TAG, "Set Channel %d", channel);
+        current_channel = channel;
+        esp_err_t err = esp_wifi_set_channel(channel, WIFI_SECOND_CHAN_NONE);
+        if (err == ESP_OK) {
+            ESP_LOGI(SNF, "Set Channel %d", channel);
+        }
         channel ++;
         if (channel > 13) channel = 1;
-        vTaskDelay(pdMS_TO_TICKS(2000)); //time per channel
+        vTaskDelay(pdMS_TO_TICKS(500)); //time per channel
     }
 }
+
+//saving the log entries from RAM to a JSON file
+//could do csv
+
+// need to add checking that buffer has space left
+
+static const char *logToJson(void) {
+    static char buffer[8192];
+    char *p = buffer;
+    p += sprintf(p, "[");
+
+    for (int i = 0; i < log_index; i++) {
+        packet_log_t *e = &packet_log[i];
+        p+= sprintf(p, 
+            "{\"time\":%lu,\"mac\":\"%02X:%02X:%02X:%02X:%02X:%02X\","
+            "\"rssi\":%d,\"ch\":%d}%s",
+            e->timestamp,
+            e->mac[0], e->mac[1], e->mac[2], e->mac[3], e->mac[4], e->mac[5],
+            e->rssi,
+            e->channel,
+            (i == log_index - 1) ? "": ",");
+    }
+    sprintf(p, "]");
+    return buffer;
+}
+
+static void sniff_mode(void) {
+    ESP_LOGI(SNF, "SNIFF MODE for 30s");
+
+    esp_wifi_stop();
+    esp_wifi_set_mode(WIFI_MODE_NULL);
+    esp_wifi_start();
+
+    esp_wifi_set_ps(WIFI_PS_NONE);
+
+    // Accept all packets
+    // for some reason it has to be set with .filter_mask
+    esp_wifi_set_promiscuous_rx_cb(&wifi_sniffer_cb);
+    wifi_promiscuous_filter_t filter = {.filter_mask = WIFI_PROMIS_FILTER_MASK_ALL};
+    esp_wifi_set_promiscuous_filter(&filter);
+    esp_wifi_set_promiscuous(true);
+
+    xTaskCreatePinnedToCore(channel_hop_task, "ch_hop", 4096, NULL, 5, NULL, 1);
+
+    vTaskDelay(pdMS_TO_TICKS(30000));
+
+    //kill channel hop task after 30s
+    esp_wifi_set_promiscuous(false);
+    if (channel_hop_handle) {
+        vTaskDelete(channel_hop_handle);
+        channel_hop_handle = NULL;
+    }
+}
+
+// To do, connect to a server and transmit the json
+static void transmit_mode(void) {
+    ESP_LOGI(TRNSMT, "TRANSMIT MODE for 10s");
+    
+    esp_wifi_stop();
+    esp_wifi_set_mode(WIFI_MODE_STA);
+
+    ESP_LOGI(TRNSMT, "Would send %d packets now", log_index);
+
+    esp_wifi_start();
+    vTaskDelay(pdMS_TO_TICKS(5000));
+    const char *json = logToJson();
+    log_index = 0;
+}
+
+static void modeSwitcher(void *arg) {
+    while (1) {
+        sniff_mode();
+        transmit_mode();
+    }
+}
+
+// -- MAIN ----------------------------------------
 
 void app_main(void)
 {
@@ -83,18 +191,11 @@ void app_main(void)
     wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
     esp_wifi_init(&cfg);
     esp_wifi_set_storage(WIFI_STORAGE_RAM);
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    esp_wifi_start();
-    esp_wifi_set_ps(WIFI_PS_NONE);
-    esp_wifi_set_promiscuous_rx_cb(&wifi_sniffer_cb);
 
-    // Accept all packets
-    // for some reason it has to be set with .filter_mask
-    wifi_promiscuous_filter_t filter = 
-    {
-        .filter_mask = WIFI_PROMIS_FILTER_MASK_ALL
-    }; 
-    esp_wifi_set_promiscuous_filter(&filter);
-    esp_wifi_set_promiscuous(true);
-    xTaskCreatePinnedToCore(channel_hop_task, "ch_hop", 4096, NULL, 5, NULL, 1);
+    
+    //starts loop
+    xTaskCreate(modeSwitcher, "modeSwitcher", 12*1024, NULL, 5, NULL);
 }
+
+// -----------------------------------------------
+
