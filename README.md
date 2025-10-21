@@ -1,32 +1,35 @@
-# _Sample project_
+# Wi-fi Sniffer
 
-(See the README.md file in the upper level 'examples' directory for more information about examples.)
+# specs
++ Espressif ESP32-Wroom-32D module on ESP32 devkitc
++ Project listens to 802.11 packets in promiscuous mode,
+  so without a filter. Should listen on all channels
++ Uses freeRTOS to schedule tasks
 
-This is the simplest buildable example. The example is used by command `idf.py create-project`
-that copies the project to user specified path and set it's name. For more information follow the [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project)
+# Plan
++ to implement a system where ESP32 boards in different physical locations transmit relevant packet information to an MQTT broker running on a central Raspberry pi, which handles packet logic and 
+visualizes the information
 
++ options for visualization
+    + [----------------] intensity meters
+      Display an incoming datapacket based on its intensity (dbm) as a flashing of one of the dashes
+    + more complicated, visual mapping of physical locations of devices
 
+# Problems
++ ESP32 cannot at the same time listen in promiscuous mode and 
+  send the data somewhere.
+  + currently I solve it by switching between 'Listen mode' and
+    'broadcast mode'
++ Identifying devices, as most handhelds and laptops randomize their MAC addresses
+  + Could identify multiple MAC addresses with consistent location as one device
+  + prone to errors with dense areas
 
-## How to use example
-We encourage the users to use the example as a template for the new projects.
-A recommended way is to follow the instructions on a [docs page](https://docs.espressif.com/projects/esp-idf/en/latest/api-guides/build-system.html#start-a-new-project).
-
-## Example folder contents
-
-The project **sample_project** contains one source file in C language [main.c](main/main.c). The file is located in folder [main](main).
-
-ESP-IDF projects are built using CMake. The project build configuration is contained in `CMakeLists.txt`
-files that provide set of directives and instructions describing the project's source files and targets
-(executable, library, or both). 
-
-Below is short explanation of remaining files in the project folder.
-
-```
+## Folder structure
+´´´
 ├── CMakeLists.txt
 ├── main
 │   ├── CMakeLists.txt
 │   └── main.c
-└── README.md                  This is the file you are currently reading
-```
-Additionally, the sample project contains Makefile and component.mk files, used for the legacy Make based build system. 
-They are not used or needed when building with CMake and idf.py.
+└── README.md     
+´´´           
+
