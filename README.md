@@ -1,34 +1,55 @@
 # Wi-fi Sniffer
 
-# specs
-+ Espressif ESP32-Wroom-32D module on ESP32 devkitc
-+ Project listens to 802.11 packets in promiscuous mode,
-  so without a filter. Should listen on all channels
-+ Uses freeRTOS to schedule tasks
+## DISCLAIMER
++ This project is purely for the purposes of learning, and demonstrating possible ways to analyze traffic
++ Project includes storing MAC addressess and other information to a database
++ It is not intended to be used to identify/de-anonymize internet users
 
-# Plan
-+ to implement a system where ESP32 boards in different physical locations transmit relevant packet information to the e.g. central raspberry pi listening to a TCPsocket.
+## Project overview
+ESP32 devices run in promiscuous/monitor mode, capture 802.11 frames, parse important fields to a JSON and send it to a Raspberry Pi over UDP. The Raspberry Pi updates records into a database, and it can be used later.
 
-+ options for visualization
-    + [----------------] intensity meters
-      Display an incoming datapacket based on its intensity (dbm) as a flashing of one of the dashes, real time is problematic with a bulk json only every 30 seconds
-    + visual mapping of physical locations of devices, updates every 30 seconds. more complicated, requires triangulation to compute the physical location. Also difficult with randomized MACs
+## Example infrastructure
+
+```
+ .------------.     .------------.     .------------.
+ |  ESP32 #1  |     |  ESP32 #2  |     |  ESP32 #3  |
+ '------+-----'     '------+-----'     '------+-----'
+        |                  |                  |
+        |          .---------------.          |
+        |__________| Raspberry pi  |__________|
+                   |     as an     |
+                   | Access Point  |
+                   '---------------'
+```
+
+## Hardware I use
+- Espressif ESP32-WROOM-32D (ESP32 DevKitC)
+- Raspberry Pi 3B (Acting as its own AP)
+- (Optional) External antenna for increased transmit range
+  
+## Current goal
+- Multiple ESP32 sniffers capture 802.11 management frames and send parsed JSON to a centralized UDP endpoint on a Raspberry Pi.
+- Raspberry Pi parses incoming messages and writes entries to a database.
+- Visualize data (heatmap, RSSI-over-time graphs, device density, etc.).
 
 # Problems
-+ ESP32 cannot at the same time listen in promiscuous mode and 
-  send the data somewhere.
-  + currently I solve it by switching between 'Listen mode' and
-    'broadcast mode'
-+ Identifying devices, as most handhelds and laptops randomize their MAC addresses
-  + Could identify multiple MAC addresses with consistent location as one device
-  + prone to errors with dense areas
+## MAC randomization
+Most mobile devices currently randomize their MAC addresses, and this makes it difficult to track any single device. Essentially a phone might send a probe request under one MAC address and another probe request under another MAC address. This results in a MAC address having usually one or few entries in the database --> It would look like the network has tons of devices even though there might only be a few.
 
-## Folder structure
+Possible solutions:
+collecting packet data from 802.11 frame control fields -- this would potentially make it possible to identify/group multiple similar packets as one device even though under a different MAC address. Frame control data in 802.11 contains for example IE data that can be 'fingerprinted' and might stay consistent over mac addresses
+
+Simplified 802.11 packet with the fields we're most interested in
 ```
-├── CMakeLists.txt
-├── main
-│   ├── CMakeLists.txt
-│   └── main.c
-└── README.md     
-```     
+Bytes 0-2                       Bytes 10-16                  PAYLOAD
++---------------------+--------+---------------------+------+---------------------+-------+
+| Frame Control       | ...    | ADDR2 (the source)  | ...  | Frame body          | FCS   |
++---------------------+--------+---------------------+------+---------------------+-------+
+```
+In addition we can reduce the amount of packets by deciding that we're not interested in beacon packets, since they are usually sent by e.g. routers and likely is most of the entries. A few studies show average mobile probe requests to be more bursty, but still much less frequent than router beacon packets
+
+# Requirements
++ ESP-IDF
++ ESP32 microcontroller
++ UDP listener and database can be run off of anything that can act as an access point
 
