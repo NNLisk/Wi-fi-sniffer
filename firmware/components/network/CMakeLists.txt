@@ -1,6 +1,7 @@
 idf_component_register(
-    SRCS "main.c"
+    SRCS "networkmanager.c"
     INCLUDE_DIRS "."
-    REQUIRES nvs_flash esp_wifi esp_event lwip network)
+    REQUIRES esp_wifi lwip
+)
 
 idf_build_set_property(COMPILE_OPTIONS "-include sdkconfig" APPEND)

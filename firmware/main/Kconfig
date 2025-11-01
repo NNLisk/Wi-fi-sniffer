@@ -1,0 +1,27 @@
+menu "Wi-Fi Sniffer General configuration"
+
+    config CHANNEL_HOP_INTERVAL
+    string "How long the sniffer stays on one channel (ms)"
+    default 2000
+    help
+        Time spent per wifi channel, before moves to the next, total 13 channels
+
+    config SNIFF_TIME_PER_CYCLE
+    string "Time spent capturing packets before starting to transmit"
+    default 30000
+    help
+        How long does the board sniff for packets before starting to transmit (ms)
+
+    config MAX_LOG_ENTRIES
+    string "Maximum captured packets per cycle"
+    default 1000
+    help
+        The backup cap on the amount of packets captured before transmitting (flushing), primarily moderated based on time
+
+    config TRANSMIT_TIME_PER_CYCLE
+    string "Time spent transmitting packets before starting to capture again"
+    default 10000
+    help
+        How long does the board transmit before starting to capture again (ms)
+        
+endmenu

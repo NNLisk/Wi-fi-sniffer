@@ -1,0 +1,26 @@
+menu "Sniffer networking configuration"
+
+    config HOSTSSID
+    string "The SSID of the centralized host (ACCESS POINT)"
+    default "sniffnet"
+    help
+        The controller tries to connect to a central computer that handles the logic.
+    
+    config HOSTPW
+    string "The password of the centralized host (ACCESS POINT)"
+    default "sniff1234"
+    help
+        The password to the access point
+
+    config SERVERIP
+    string "The IP address of the host running the listening server"
+    default "0.0.0.0"
+    help
+        There should be a listening process on a machine that the microboard connects to, this defines the IP address
+
+    config PORT
+    string "The port number of the listening process running on the central host (default 58585)"
+    default 58585
+    help
+        The port number of the listening process running on the central host (default 58585)
+endmenu
