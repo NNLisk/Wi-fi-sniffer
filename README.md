@@ -14,7 +14,14 @@ idf.py menuconfig
 ```
 and navigating to component menu
 
-# Plan
+## Usage
+open the project with ESP-IDF and run
+```
+idf.py build flash
+```
+with your ESP32 connected. The chip will connect and send data to an accesspoint you have defined with Kconfig.
+
+## Plan
 + to implement a system where ESP32 boards in different physical locations transmit relevant packet information to the e.g. central raspberry pi listening to a TCPsocket.
 
 + options for visualization
