@@ -1,10 +1,18 @@
 # Wi-fi Sniffer
 
-# specs
+## specs
 + Espressif ESP32-Wroom-32D module on ESP32 devkitc
 + Project listens to 802.11 packets in promiscuous mode,
   so without a filter. Should listen on all channels
 + Uses freeRTOS to schedule tasks
+
+## configuration
+The project uses component specific Kconfig menus on top of ESP-IDF kconfigs
+configuration options can be modified with a menu by running
+```
+idf.py menuconfig
+```
+and navigating to component menu
 
 # Plan
 + to implement a system where ESP32 boards in different physical locations transmit relevant packet information to the e.g. central raspberry pi listening to a TCPsocket.
@@ -14,7 +22,7 @@
       Display an incoming datapacket based on its intensity (dbm) as a flashing of one of the dashes, real time is problematic with a bulk json only every 30 seconds
     + visual mapping of physical locations of devices, updates every 30 seconds. more complicated, requires triangulation to compute the physical location. Also difficult with randomized MACs
 
-# Problems
+## Problems
 + ESP32 cannot at the same time listen in promiscuous mode and 
   send the data somewhere.
   + currently I solve it by switching between 'Listen mode' and
