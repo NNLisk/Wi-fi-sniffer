@@ -44,11 +44,14 @@ with your ESP32 connected. The chip will connect and send data to an accesspoint
 ├── Components
 │   └── network
 │       ├── CmakeLists.txt
+│       ├── Kconfig
 │       ├── networkmanager.c
 │       └── networkmanager.h
 ├── main
+│   ├── Kconfig
 │   ├── CMakeLists.txt
 │   └── main.c
+├── sdkconfig.h
 └── README.md     
 ```     
 
