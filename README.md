@@ -41,6 +41,11 @@ with your ESP32 connected. The chip will connect and send data to an accesspoint
 ## Folder structure
 ```
 ├── CMakeLists.txt
+├── Components
+│   └── network
+│       ├── CmakeLists.txt
+│       ├── networkmanager.c
+│       └── networkmanager.h
 ├── main
 │   ├── CMakeLists.txt
 │   └── main.c
