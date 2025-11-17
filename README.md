@@ -5,6 +5,7 @@
 + Project listens to 802.11 packets in promiscuous mode,
   so without a filter. Should listen on all channels
 + Uses freeRTOS to schedule tasks
++ Kconfig for menu configuration
 
 ## configuration
 The project uses component specific Kconfig menus on top of ESP-IDF kconfigs

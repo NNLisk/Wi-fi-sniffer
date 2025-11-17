@@ -14,7 +14,7 @@
 #include "networkmanager.h"
 #include "sdkconfig.h"
 
-// -- Kconfig reference --------------------
+// kconfig reference
 
 // MAX_LOG_ENTRIES
 // CHANNEL_HOP_INTERVAL
@@ -22,7 +22,7 @@
 // TRANSMIT_TIME_PER_CYCLE
 
 
-// -- Fields ---------------------------------
+// fields
 
 static const char *TAG = "MAIN";
 static NetworkManager *nm = NULL;
@@ -30,7 +30,7 @@ static NetworkManager *nm = NULL;
 static int current_channel = 1;
 static TaskHandle_t channel_hop_handle = NULL;
 
-// -- Structs ---------------------------
+// types
 
 typedef struct {
     // first 2 bytes of the frame
@@ -208,7 +208,7 @@ void mode_switcher(void *args) {
     transmit_mode_stop();
 } 
 
-// -- MAIN ----------------------------------------
+// MAIN
 void app_main(void)
 {
     /* Initializes the non volatile storage*/
@@ -232,5 +232,5 @@ void app_main(void)
 
     network_manager_destroy(nm);
 }
-// -----------------------------------------------
+
 

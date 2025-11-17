@@ -8,11 +8,12 @@
 
 #include "sdkconfig.h"
 
-#define HOSTSSID "sniffnet"
-#define HOSTPW "sniff1234"
+// kconfig reference
 
-#define SERVERIP "192.168.100.12"
-#define PORT 58585
+// SERVERIP
+// PORT
+// HOSTSSID
+// HOSTPW
 
 static const char *TAG = "NET_MGR";
 
