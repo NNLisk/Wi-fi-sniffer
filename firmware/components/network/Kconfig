@@ -19,7 +19,7 @@ menu "Sniffer networking configuration"
         There should be a listening process on a machine that the microboard connects to, this defines the IP address
 
     config PORT
-    string "The port number of the listening process running on the central host (default 58585)"
+    int "The port number of the listening process running on the central host (default 58585)"
     default 58585
     help
         The port number of the listening process running on the central host (default 58585)

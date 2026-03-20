@@ -63,7 +63,7 @@ typedef struct {
 } packet_log_t;
 
 
-packet_log_t packet_log[MAX_LOG_ENTRIES];
+packet_log_t packet_log[CONFIG_MAX_LOG_ENTRIES];
 int log_index = 0;
 
 
@@ -71,7 +71,7 @@ int log_index = 0;
 static void wifi_sniffer_cb(void *buf, wifi_promiscuous_pkt_type_t type) {    
     const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buf;
     if (!ppkt) return;
-    if (log_index >= MAX_LOG_ENTRIES) return;
+    if (log_index >= CONFIG_MAX_LOG_ENTRIES) return;
 
     const uint8_t *raw = ppkt-> payload;
     if (!raw) return;
@@ -98,7 +98,7 @@ static void channel_hop_task(void *arg) {
         }
         channel ++;
         if (channel > 13) channel = 1;
-        vTaskDelay(pdMS_TO_TICKS(CHANNEL_HOP_INTERVAL)); //time per channel
+        vTaskDelay(pdMS_TO_TICKS(CONFIG_CHANNEL_HOP_INTERVAL)); //time per channel
     }
 }
 
@@ -200,11 +200,11 @@ static void transmit_mode_stop(void) {
 // - n seconds transmit
 void mode_switcher(void *args) {
     sniff_mode();
-    vTaskDelay(pdMS_TO_TICKS(SNIFF_TIME_PER_CYCLE));
+    vTaskDelay(pdMS_TO_TICKS(CONFIG_SNIFF_TIME_PER_CYCLE));
     sniff_mode_stop();
 
     transmit_mode();
-    vTaskDelay(pdMS_TO_TICKS(TRANSMIT_TIME_PER_CYCLE));
+    vTaskDelay(pdMS_TO_TICKS(CONFIG_TRANSMIT_TIME_PER_CYCLE));
     transmit_mode_stop();
 } 
 
@@ -230,7 +230,6 @@ void app_main(void)
     // mode switcher task
     xTaskCreatePinnedToCore(mode_switcher, "modeSwitcher", 12*1024, NULL, 5, NULL, 1);
 
-    network_manager_destroy(nm);
 }
 
 

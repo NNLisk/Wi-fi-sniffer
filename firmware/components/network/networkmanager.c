@@ -32,8 +32,8 @@ NetworkManager* network_manager_create(void) {
         return NULL;
     }
 
-    strncpy(nm -> host, SERVERIP, sizeof(nm->host) - 1);
-    nm->port = PORT;
+    strncpy(nm -> host, CONFIG_SERVERIP, sizeof(nm->host) - 1);
+    nm->port = CONFIG_PORT;
     nm->socket_fd = -1;
     nm->connected = false;
     return nm;
@@ -56,8 +56,8 @@ int network_manager_connect(NetworkManager* nm) {
 
     wifi_config_t wifi_config = {
         .sta = {
-            .ssid = HOSTSSID,
-            .password = HOSTPW
+            .ssid = CONFIG_HOSTSSID,
+            .password = CONFIG_HOSTPW
         },
     };
 
@@ -76,9 +76,9 @@ int network_manager_connect(NetworkManager* nm) {
 
     //ipv4 address
     struct sockaddr_in dest_addr;
-    nm->dest_addr.sin_addr.s_addr = inet_addr(SERVERIP);
+    nm->dest_addr.sin_addr.s_addr = inet_addr(CONFIG_SERVERIP);
     nm->dest_addr.sin_family = AF_INET;
-    nm->dest_addr.sin_port = htons(PORT);
+    nm->dest_addr.sin_port = htons(CONFIG_PORT);
    
 
     ESP_LOGI(TAG, "Connecting");
