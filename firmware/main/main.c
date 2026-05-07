@@ -27,7 +27,7 @@
 static const char *TAG = "MAIN";
 static NetworkManager *nm = NULL;
 
-static int current_channel = 1;
+static volatile int current_channel = 1;
 static TaskHandle_t channel_hop_handle = NULL;
 
 // types
@@ -60,7 +60,7 @@ typedef struct {
     int8_t rssi;
     uint8_t mac[6];
     uint8_t channel;
-} packet_log_t;
+} __attribute__((packed)) packet_log_t;
 
 
 packet_log_t packet_log[CONFIG_MAX_LOG_ENTRIES];
@@ -111,10 +111,6 @@ static void channel_hop_task(void *arg) {
 static void sniff_mode(void) {
     ESP_LOGI(TAG, "SNIFF MODE for 30s");
 
-    if (network_manager_connect(nm) == 0) {
-        ESP_LOGI(TAG, "Disconnecting from host");
-        network_manager_disconnect(nm);
-    } 
 
     esp_wifi_stop();
     esp_wifi_set_mode(WIFI_MODE_NULL);
@@ -173,6 +169,7 @@ static void transmit_mode(void) {
     }
 
     size_t total_bytes = log_index * sizeof(packet_log_t);
+    ESP_LOGI(TAG, "packet_log_t size: %d", sizeof(packet_log_t));
     int sent = network_manager_send(nm, packet_log, total_bytes);
 
     if (sent > 0) {
