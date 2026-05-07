@@ -54,6 +54,8 @@ typedef struct {
     uint8_t payload[]; // variable-length frame body
 } wifi_ieee80211_packet_t;
 
+
+// packet padding bytes removed 
 typedef struct {
     uint32_t timestamp;
     uint8_t framecontrol;
