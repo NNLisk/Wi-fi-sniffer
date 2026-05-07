@@ -199,13 +199,15 @@ static void transmit_mode_stop(void) {
 // - n seconds listen
 // - n seconds transmit
 void mode_switcher(void *args) {
-    sniff_mode();
-    vTaskDelay(pdMS_TO_TICKS(CONFIG_SNIFF_TIME_PER_CYCLE));
-    sniff_mode_stop();
+    while(1) {
+        sniff_mode();
+        vTaskDelay(pdMS_TO_TICKS(CONFIG_SNIFF_TIME_PER_CYCLE));
+        sniff_mode_stop();
 
-    transmit_mode();
-    vTaskDelay(pdMS_TO_TICKS(CONFIG_TRANSMIT_TIME_PER_CYCLE));
-    transmit_mode_stop();
+        transmit_mode();
+        vTaskDelay(pdMS_TO_TICKS(CONFIG_TRANSMIT_TIME_PER_CYCLE));
+        transmit_mode_stop();
+    }
 } 
 
 // MAIN

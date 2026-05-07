@@ -3,4 +3,3 @@ idf_component_register(
     INCLUDE_DIRS "."
     REQUIRES nvs_flash esp_wifi esp_event lwip network)
 
-idf_build_set_property(COMPILE_OPTIONS "-include sdkconfig" APPEND)
