@@ -111,7 +111,6 @@ static void channel_hop_task(void *arg) {
 static void sniff_mode(void) {
     ESP_LOGI(TAG, "SNIFF MODE for 30s");
 
-
     esp_wifi_stop();
     esp_wifi_set_mode(WIFI_MODE_NULL);
     esp_wifi_start();
@@ -202,7 +201,6 @@ void mode_switcher(void *args) {
         sniff_mode_stop();
 
         transmit_mode();
-        vTaskDelay(pdMS_TO_TICKS(CONFIG_TRANSMIT_TIME_PER_CYCLE));
         transmit_mode_stop();
     }
 } 
