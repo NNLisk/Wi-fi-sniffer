@@ -1,5 +1,7 @@
 import socket, struct
 
+# listener, receivers and prints the network packets
+
 HOST = '0.0.0.0'
 PORT = 58585  
 
