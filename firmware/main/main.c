@@ -55,7 +55,7 @@ typedef struct {
 } wifi_ieee80211_packet_t;
 
 
-// packet padding bytes removed 
+// packet padding bytes removed packet size 13bytes
 typedef struct {
     uint32_t timestamp;
     uint8_t framecontrol;
