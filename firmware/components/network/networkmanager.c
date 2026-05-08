@@ -14,14 +14,14 @@ static EventGroupHandle_t wifi_events;
 static const char *TAG = "NET_MGR";
 
 
-wifi_config_t ap_config = {
-    .ap = {
-        .ssid = AP_SSID,
-        .password = AP_PASSWORD,
-        .max_connection = 1,
-        .authmode = WIFI_AUTH_WPA2_PSK,
-    },
-};
+// wifi_config_t ap_config = {
+//     .ap = {
+//         .ssid = AP_SSID,
+//         .password = AP_PASSWORD,
+//         .max_connection = 1,
+//         .authmode = WIFI_AUTH_WPA2_PSK,
+//     },
+// };
 
 wifi_config_t wifi_config = {
         .sta = {

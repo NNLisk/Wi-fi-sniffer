@@ -7,7 +7,7 @@
 
 #include "networkmanager.h"
 #include "sniffer.h"        // sniff_mode, sniff_mode_stop, packet_log, log_index
-#include "packet.h"         // packet_log_t
+#include "packet_def.h"         // packet_log_t
 
 #include "sdkconfig.h"
 // kconfig reference

@@ -5,7 +5,7 @@
 #include <string.h>
 
 #include "sniffer.h"
-#include "packet.h"
+#include "packet_def.h"
 #include "networkmanager.h"
 #include "sdkconfig.h"
 
