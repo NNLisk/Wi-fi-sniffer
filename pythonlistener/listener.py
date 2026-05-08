@@ -7,7 +7,7 @@ HOST = '0.0.0.0'
 PORT = 58585  
 
 packets = deque(maxlen=5000)
-packet_size = 4 + 1 + 1 + 6 + 1  # matches packet_log_t
+packet_size = 4 + 2 + 1 + 6 + 1  # matches packet_log_t
 
 
 stats = {
@@ -46,7 +46,7 @@ def start_listener():
                 if not data:
                     break
 
-                ts, fc, rssi, mac, ch = struct.unpack('<IBB6sB', data)
+                ts, fc, rssi, mac, ch = struct.unpack('<IHB6sB', data)
                 mac_str = mac.hex(":")
                 
                 # print(f"[{ts}ms] ch={ch} rssi={rssi} mac={mac.hex(':')} fc={fc:#04x}")
