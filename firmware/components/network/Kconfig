@@ -5,6 +5,14 @@ menu "Sniffer networking configuration"
     default "sniffnet"
     help
         The controller tries to connect to a central computer that handles the logic.
+
+    config AP_SSID
+    string "Set the SSID of the AP"
+    default "ESP32_SNIFF"
+    
+    config AP_PASSWORD
+    string "Set the password of the AP"
+    default "12344321"
     
     config HOSTPW
     string "The password of the centralized host (ACCESS POINT)"
@@ -23,4 +31,5 @@ menu "Sniffer networking configuration"
     default 58585
     help
         The port number of the listening process running on the central host (default 58585)
+
 endmenu

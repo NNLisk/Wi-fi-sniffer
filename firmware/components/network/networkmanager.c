@@ -11,6 +11,22 @@
 static EventGroupHandle_t wifi_events;
 #define WIFI_CONNECTED_BIT BIT0
 
+wifi_config_t ap_config = {
+    .ap = {
+        .ssid = AP_SSID,
+        .password = AP_PASSWORD,
+        .max_connection = 1,
+        .authmode = WIFI_AUTH_WPA2_PSK,
+    },
+};
+
+wifi_config_t wifi_config = {
+        .sta = {
+            .ssid = CONFIG_HOSTSSID,
+            .password = CONFIG_HOSTPW
+        },
+    };
+
 
 // kconfig reference
 
@@ -75,13 +91,11 @@ void network_manager_destroy(NetworkManager* nm) {
 int network_manager_connect(NetworkManager* nm) {
     esp_wifi_stop();
     esp_wifi_set_mode(WIFI_MODE_STA);
+    
+    // esp_wifi_set_mode(WIFI_MODE_AP);
+    // esp_wifi_set_config(WIFI_IF_AP, &ap_config);
+    // esp_wifi_start();
 
-    wifi_config_t wifi_config = {
-        .sta = {
-            .ssid = CONFIG_HOSTSSID,
-            .password = CONFIG_HOSTPW
-        },
-    };
 
     esp_wifi_set_config(WIFI_IF_STA, &wifi_config);
     esp_wifi_start();

@@ -55,16 +55,16 @@ def start_listener():
                     "timestamp_ms": ts,
                     "frame_control": fc,
                     "rssi": rssi,
-                    "mac": mac,
+                    "mac": mac_str,
                     "channel": ch,
                     "received": time.time()
                 }
 
                 packets.append(packet)
-                stats[total_packets] + 1
-                stats[unique_devices].add(mac_str)
+                stats["total_packets"] += 1
+                stats["unique_devices"].add(mac_str)
 
-                if ch not in stats[channel_counts]:
+                if ch not in stats["channel_counts"]:
                     stats["channel_counts"][ch] = 0
                 stats["channel_counts"][ch] += 1
         except Exception as e:

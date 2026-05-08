@@ -4,3 +4,5 @@ sdkconfig.old
 .vscode/
 .cache/
 .devcontainer/
+.venv/
+
