@@ -30,7 +30,7 @@ typedef struct {
 // packet padding bytes removed packet size 13bytes
 typedef struct {
     uint32_t timestamp;
-    uint8_t framecontrol;
+    uint16_t framecontrol;
     int8_t rssi;
     uint8_t mac[6];
     uint8_t channel;
