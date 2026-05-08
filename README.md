@@ -29,6 +29,18 @@ then run the python listener on your device with the hotspot on
 + esp-idf
 + python
 
+## topology
+
+```
+[ sniffer ] -------> [ central device ACCESSPOINT ] <---------- [ sniffer ]
+
+# the sniffers connect to the accesspoint
+# with three sniffers the plan is to triangulate packets
+# and be able to map the traffic of an area e.g. with a heatmap
+# physical location can group the mac addresses although identification
+# isn't the purpose of this project
+```
+
 
 ## Problems
 + ESP32 cannot at the same time listen in promiscuous mode and 
